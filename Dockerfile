@@ -22,6 +22,18 @@ RUN corepack enable && corepack prepare pnpm@10.17.0 --activate
 
 WORKDIR /app
 
+# 设置构建时的虚拟环境变量（真实值将在运行时注入）
+ENV DATABASE_URL="postgresql://user:password@localhost:5432/db"
+ENV NEXTAUTH_SECRET="build-time-secret"
+ENV NEXTAUTH_URL="http://localhost:3000"
+ENV GOOGLE_CLIENT_ID="build-client-id"
+ENV GOOGLE_CLIENT_SECRET="build-client-secret"
+ENV OPENAI_API_KEY="sk-build-key"
+ENV TOGETHER_AI_API_KEY="build-key"
+ENV TAVILY_API_KEY="build-key"
+ENV UNSPLASH_ACCESS_KEY="build-key"
+ENV UPLOADTHING_TOKEN="build-token"
+
 # 复制依赖
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .

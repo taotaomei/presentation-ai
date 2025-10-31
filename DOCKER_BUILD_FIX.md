@@ -52,7 +52,53 @@ RUN pnpm install --frozen-lockfile
 2. ✅ 运行 `pnpm install`，自动触发 postinstall
 3. ✅ postinstall 运行 `prisma generate`，成功找到 schema.prisma
 4. ✅ 生成 Prisma Client
-5. ✅ 继续后续构建步骤
+5. ✅ 设置构建时虚拟环境变量（通过 env.js 验证）
+6. ✅ 继续后续构建步骤
+
+## 环境变量问题（2024-10-31 新增）
+
+### 问题
+在构建阶段遇到环境变量验证失败：
+```
+❌ Invalid environment variables: {
+  DATABASE_URL: [ 'Required' ],
+  NEXTAUTH_SECRET: [ 'Required' ],
+  ...
+}
+```
+
+### 原因
+- `.env` 文件被 `.dockerignore` 排除（正确做法）
+- Next.js 的 `src/env.js` 在构建时验证环境变量
+- 构建时无法访问真实环境变量
+
+### 解决方案
+在 builder 阶段设置虚拟环境变量：
+
+```dockerfile
+# Stage 2: 构建应用
+FROM node:20-alpine AS builder
+
+# 设置构建时的虚拟环境变量（真实值将在运行时注入）
+ENV DATABASE_URL="postgresql://user:password@localhost:5432/db"
+ENV NEXTAUTH_SECRET="build-time-secret"
+ENV NEXTAUTH_URL="http://localhost:3000"
+ENV GOOGLE_CLIENT_ID="build-client-id"
+ENV GOOGLE_CLIENT_SECRET="build-client-secret"
+ENV OPENAI_API_KEY="sk-build-key"
+ENV TOGETHER_AI_API_KEY="build-key"
+ENV TAVILY_API_KEY="build-key"
+ENV UNSPLASH_ACCESS_KEY="build-key"
+ENV UPLOADTHING_TOKEN="build-token"
+
+# 构建应用
+RUN pnpm build
+```
+
+**重要说明**：
+- 这些是虚拟值，仅用于通过构建时的环境变量验证
+- 真实的环境变量在运行时通过 `docker-compose.yml` 注入
+- 不会影响应用的实际运行
 
 ## 相关文件
 

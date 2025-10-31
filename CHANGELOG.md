@@ -1,5 +1,59 @@
 # 更新日志
 
+## [2024-10-31] 环境变量构建问题修复
+
+### 🔧 修复
+
+- **环境变量验证失败问题**
+  - 在 builder 阶段添加虚拟环境变量
+  - 修复了 Next.js 构建时 env.js 验证失败的错误
+  - 真实环境变量在运行时通过 docker-compose 注入
+  
+- **docker-compose version 警告**
+  - 移除了过时的 `version: '3.8'` 字段
+  - 消除了构建时的警告信息
+
+### 📝 变更详情
+
+**问题：**
+```
+❌ Invalid environment variables: {
+  DATABASE_URL: [ 'Required' ],
+  NEXTAUTH_SECRET: [ 'Required' ],
+  ...
+}
+```
+
+**原因：**
+- `.env` 文件被 `.dockerignore` 排除（正确的安全做法）
+- Next.js 的 `src/env.js` 在构建时验证环境变量
+- docker-compose 的环境变量只在运行时注入
+
+**解决方案：**
+```dockerfile
+# Stage 2: builder
+# 添加虚拟环境变量（仅用于构建时验证）
+ENV DATABASE_URL="postgresql://user:password@localhost:5432/db"
+ENV NEXTAUTH_SECRET="build-time-secret"
+ENV OPENAI_API_KEY="sk-build-key"
+# ... 其他必需的环境变量
+```
+
+### 🎯 影响范围
+
+- ✅ Docker 构建现在可以成功完成
+- ✅ 安全性保持不变（真实密钥不会打包到镜像）
+- ✅ 运行时使用 .env 文件中的真实配置
+
+### 📚 相关文档
+
+- `ENV_VARS_FIX.md` - 环境变量问题详细说明
+- `DOCKER_BUILD_FIX.md` - 已更新，包含环境变量部分
+- `Dockerfile` - 已更新
+- `docker-compose.yml` - 已更新（移除 version）
+
+---
+
 ## [2024-10-31] Docker 构建修复
 
 ### 🔧 修复
