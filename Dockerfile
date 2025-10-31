@@ -7,8 +7,9 @@ RUN corepack enable && corepack prepare pnpm@10.17.0 --activate
 # 设置工作目录
 WORKDIR /app
 
-# 复制 package 文件
+# 复制 package 文件和 prisma schema
 COPY package.json pnpm-lock.yaml ./
+COPY prisma ./prisma/
 
 # 安装依赖
 RUN pnpm install --frozen-lockfile

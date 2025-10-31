@@ -34,8 +34,12 @@ OPENAI_API_KEY="sk-你的-api-key"
 ## 步骤 2: 启动服务
 
 ```bash
-# 一键部署
+# 方式 1: 使用一键部署脚本（推荐）
 ./deploy.sh build
+./deploy.sh start
+
+# 方式 2: 测试构建（验证配置是否正确）
+./test-build.sh
 ./deploy.sh start
 ```
 
