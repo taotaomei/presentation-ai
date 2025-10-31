@@ -10,9 +10,11 @@ interface SlidesRequest {
   outline: string[]; // Array of main topics with markdown content
   language: string; // Language to use for the slides
   tone: string; // Style for image queries (optional)
-  modelProvider?: string; // Model provider (openai, ollama, or lmstudio)
+  modelProvider?: string; // Model provider (openai, ollama, lmstudio, or custom)
   modelId?: string; // Specific model ID for the provider
   searchResults?: Array<{ query: string; results: unknown[] }>; // Search results for context
+  customBaseURL?: string; // Custom API base URL
+  customApiKey?: string; // Custom API key
 }
 // TODO: Add table and chart to the available layouts
 const slidesTemplate = `
@@ -247,6 +249,8 @@ export async function POST(req: Request) {
       modelProvider = "openai",
       modelId,
       searchResults,
+      customBaseURL,
+      customApiKey,
     } = (await req.json()) as SlidesRequest;
 
     if (!title || !outline || !Array.isArray(outline) || !language) {
@@ -292,7 +296,7 @@ export async function POST(req: Request) {
       day: "numeric",
     });
 
-    const model = modelPicker(modelProvider, modelId);
+    const model = modelPicker(modelProvider, modelId, customBaseURL, customApiKey);
 
     // Format the prompt with template variables
     const formattedPrompt = slidesTemplate

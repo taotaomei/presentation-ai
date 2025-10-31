@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/select";
 import { usePresentationState } from "@/states/presentation-state";
 import { Layout } from "lucide-react";
+import { CustomModelConfig } from "./CustomModelConfig";
 import { ModelPicker } from "./ModelPicker";
 
 export function PresentationControls({
@@ -24,9 +25,13 @@ export function PresentationControls({
   } = usePresentationState();
 
   return (
-    <div className="grid grid-cols-4 gap-4">
-      {/* Model Selection */}
-      <ModelPicker shouldShowLabel={shouldShowLabel} />
+    <div className="space-y-6">
+      {/* Custom API Configuration */}
+      <CustomModelConfig shouldShowLabel={shouldShowLabel} />
+
+      <div className="grid grid-cols-4 gap-4">
+        {/* Model Selection */}
+        <ModelPicker shouldShowLabel={shouldShowLabel} />
 
       {/* Number of Slides */}
       <div>
@@ -112,6 +117,7 @@ export function PresentationControls({
             </SelectItem>
           </SelectContent>
         </Select>
+      </div>
       </div>
     </div>
   );

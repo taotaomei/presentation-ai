@@ -10,6 +10,8 @@ interface OutlineRequest {
   language: string;
   modelProvider?: string;
   modelId?: string;
+  customBaseURL?: string;
+  customApiKey?: string;
 }
 
 const outlineSystemPrompt = `You are an expert presentation outline generator. Your task is to create a comprehensive and engaging presentation outline based on the user's topic.
@@ -67,6 +69,8 @@ export async function POST(req: Request) {
       language,
       modelProvider = "openai",
       modelId,
+      customBaseURL,
+      customApiKey,
     } = (await req.json()) as OutlineRequest;
 
     if (!prompt || !numberOfCards || !language) {
@@ -100,7 +104,7 @@ export async function POST(req: Request) {
     });
 
     // Create model based on selection
-    const model = modelPicker(modelProvider, modelId);
+    const model = modelPicker(modelProvider, modelId, customBaseURL, customApiKey);
 
     const result = streamText({
       model,

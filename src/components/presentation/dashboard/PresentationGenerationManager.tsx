@@ -31,6 +31,8 @@ export function PresentationGenerationManager() {
     webSearchEnabled,
     modelProvider,
     modelId,
+    customBaseURL,
+    customApiKey,
     setIsGeneratingOutline,
     setShouldStartOutlineGeneration,
     setShouldStartPresentationGeneration,
@@ -313,6 +315,8 @@ export function PresentationGenerationManager() {
       language,
       modelProvider,
       modelId,
+      customBaseURL,
+      customApiKey,
     },
     onFinish: () => {
       setIsGeneratingOutline(false);
@@ -468,6 +472,8 @@ export function PresentationGenerationManager() {
         searchResults: stateSearchResults,
         modelProvider,
         modelId,
+        customBaseURL,
+        customApiKey,
         setThumbnailUrl,
       } = usePresentationState.getState();
 
@@ -485,6 +491,8 @@ export function PresentationGenerationManager() {
           tone: presentationStyle,
           modelProvider,
           modelId,
+          customBaseURL,
+          customApiKey,
         },
       });
     }
