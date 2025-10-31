@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 interface ModelInfo {
   id: string;
   name: string;
-  provider: "ollama" | "lmstudio";
+  provider: "ollama" | "lmstudio" | "custom";
 }
 
 interface OllamaResponse {
@@ -62,14 +62,54 @@ async function fetchLMStudioModels(): Promise<ModelInfo[]> {
   }
 }
 
+// Fetch models from custom baseURL
+async function fetchCustomModels(baseURL: string): Promise<ModelInfo[]> {
+  try {
+    if (!baseURL) {
+      return [];
+    }
+    
+    // Ensure baseURL ends with /v1/models
+    const url = baseURL.endsWith("/v1/models") 
+      ? baseURL 
+      : baseURL.endsWith("/") 
+        ? `${baseURL}v1/models` 
+        : `${baseURL}/v1/models`;
+
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      console.log("Custom API not available:", response.statusText);
+      return [];
+    }
+
+    const data = (await response.json()) as LMStudioResponse;
+
+    if (!data.data || !Array.isArray(data.data)) {
+      return [];
+    }
+    console.log("custom models", data);
+
+    return data.data.map((model) => ({
+      id: `custom-${model.id}`,
+      name: model.id,
+      provider: "custom" as const,
+    }));
+  } catch (error) {
+    console.log("Custom API not available:", error);
+    return [];
+  }
+}
+
 // Fetch all local models
-async function fetchLocalModels(): Promise<ModelInfo[]> {
-  const [ollamaModels, lmStudioModels] = await Promise.all([
+async function fetchLocalModels(customBaseURL?: string): Promise<ModelInfo[]> {
+  const [ollamaModels, lmStudioModels, customModels] = await Promise.all([
     fetchOllamaModels(),
     fetchLMStudioModels(),
+    customBaseURL ? fetchCustomModels(customBaseURL) : Promise.resolve([]),
   ]);
 
-  return [...ollamaModels, ...lmStudioModels];
+  return [...ollamaModels, ...lmStudioModels, ...customModels];
 }
 
 // Popular downloadable models for Ollama
@@ -133,6 +173,8 @@ export const fallbackModels: ModelInfo[] = downloadableModels;
 const MODELS_CACHE_KEY = "presentation-models-cache";
 const SELECTED_MODEL_KEY = "presentation-selected-model";
 const CACHE_EXPIRY_KEY = "presentation-models-cache-expiry";
+const CUSTOM_BASE_URL_KEY = "presentation-custom-base-url";
+const CUSTOM_API_KEY_KEY = "presentation-custom-api-key";
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 // localStorage utilities
@@ -186,16 +228,52 @@ export function setSelectedModel(modelProvider: string, modelId: string): void {
   }
 }
 
-export function useLocalModels() {
+export function getCustomBaseURL(): string {
+  try {
+    return localStorage.getItem(CUSTOM_BASE_URL_KEY) || "";
+  } catch (error) {
+    console.error("Error getting custom baseURL from localStorage:", error);
+    return "";
+  }
+}
+
+export function setCustomBaseURL(url: string): void {
+  try {
+    localStorage.setItem(CUSTOM_BASE_URL_KEY, url);
+    console.log("Saved custom baseURL to localStorage:", url);
+  } catch (error) {
+    console.error("Error saving custom baseURL to localStorage:", error);
+  }
+}
+
+export function getCustomApiKey(): string {
+  try {
+    return localStorage.getItem(CUSTOM_API_KEY_KEY) || "";
+  } catch (error) {
+    console.error("Error getting custom API key from localStorage:", error);
+    return "";
+  }
+}
+
+export function setCustomApiKey(key: string): void {
+  try {
+    localStorage.setItem(CUSTOM_API_KEY_KEY, key);
+    console.log("Saved custom API key to localStorage");
+  } catch (error) {
+    console.error("Error saving custom API key to localStorage:", error);
+  }
+}
+
+export function useLocalModels(customBaseURL?: string) {
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   // Get cached models for initial load
   const cachedModels = getCachedModels();
 
   const query = useQuery({
-    queryKey: ["local-models"],
+    queryKey: ["local-models", customBaseURL],
     queryFn: async () => {
-      const freshModels = await fetchLocalModels();
+      const freshModels = await fetchLocalModels(customBaseURL);
       setCachedModels(freshModels);
       return freshModels;
     },

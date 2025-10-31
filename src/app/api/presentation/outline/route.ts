@@ -9,6 +9,8 @@ interface OutlineRequest {
   language: string;
   modelProvider?: string;
   modelId?: string;
+  customBaseURL?: string;
+  customApiKey?: string;
 }
 
 const outlineTemplate = `Given the following presentation topic and requirements, generate a structured outline with {numberOfCards} main topics in markdown format.
@@ -62,6 +64,8 @@ export async function POST(req: Request) {
       language,
       modelProvider = "openai",
       modelId,
+      customBaseURL,
+      customApiKey,
     } = (await req.json()) as OutlineRequest;
 
     if (!prompt || !numberOfCards || !language) {
@@ -93,7 +97,7 @@ export async function POST(req: Request) {
       day: "numeric",
     });
 
-    const model = modelPicker(modelProvider, modelId);
+    const model = modelPicker(modelProvider, modelId, customBaseURL, customApiKey);
 
     // Format the prompt with template variables
     const formattedPrompt = outlineTemplate
