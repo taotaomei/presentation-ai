@@ -183,7 +183,7 @@ function getCachedModels(): ModelInfo[] | null {
     const cached = localStorage.getItem(MODELS_CACHE_KEY);
     const expiry = localStorage.getItem(CACHE_EXPIRY_KEY);
 
-    if (cached && expiry && Date.now() < parseInt(expiry)) {
+    if (cached && expiry && Date.now() < parseInt(expiry, 10)) {
       return JSON.parse(cached);
     }
     return null;
